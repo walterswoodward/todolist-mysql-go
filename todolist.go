@@ -5,7 +5,12 @@ import (
 	"net/http"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
+	_ "github.com/go-sql-driver/mysql" // To import a package solely for its side-effects (initialization), use the blank identifier
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
+
+var db, _ = gorm.Open("mysql", "root:abracadabra@/todolist?charset=utf8&parseTime=True&loc=Local")
 
 func Ping(w http.ResponseWriter, r *http.Request) {
 	log.WithFields(log.Fields{
@@ -27,6 +32,9 @@ func init() {
 }
 
 func main() {
+	// close db connection once main is returned
+	defer db.Close()
+	
 	log.Info("Starting Todolist API server")
 	router := mux.NewRouter()
 	router.HandleFunc("/ping", Ping).Methods("GET")
