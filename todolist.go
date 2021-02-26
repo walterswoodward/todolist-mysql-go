@@ -19,6 +19,28 @@ type TodoItemModel struct {
 	Completed bool
 }
 
+func GetTodoItems(completed bool) interface{} {
+	var todos []TodoItemModel
+	TodoItems := db.Where("completed = ?", completed).Find(&todos).Value
+	return TodoItems
+}
+
+// GET Functions
+func HealthCheck(w http.ResponseWriter, r *http.Request) {
+	log.Info("API Health is OK")
+	// set header + write to view
+	w.Header().Set("Content-Type", "application/json")
+	io.WriteString(w, `{"active": true}`)
+}
+
+func GetIncompleteItems(w http.ResponseWriter, r *http.Request) {
+	log.Info("Get Incomplete TodoItems")
+	IncompleteTodoItems := GetTodoItems(false)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(IncompleteTodoItems)
+}
+
+// POST Functions
 func CreateItem(w http.ResponseWriter, r *http.Request) {
 	// Obtain POST request value for description
 	description := r.FormValue("description")
@@ -36,25 +58,6 @@ func CreateItem(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(result.Value)
 }
 
-func GetIncompletedItems(w http.ResponseWriter, r *http.Request) {
-	log.Info("Get Incomplete TodoItems")
-	IncompleteTodoItems := GetTodoItems(false)
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(IncompleteTodoItems)
-}
-
-func GetTodoItems(completed bool) interface{} {
-	var todos []TodoItemModel
-	TodoItems := db.Where("completed = ?", completed).Find(&todos).Value
-	return TodoItems
-}
-
-func HealthCheck(w http.ResponseWriter, r *http.Request) {
-	log.Info("API Health is OK")
-	// set header + write to view
-	w.Header().Set("Content-Type", "application/json")
-	io.WriteString(w, `{"active": true}`)
-}
 
 func init() {
 	// With the default log.SetFormatter(&log.TextFormatter{}) when a TTY 
@@ -76,7 +79,7 @@ func main() {
 	// GET
 	router.HandleFunc("/", HealthCheck).Methods("GET")
 	router.HandleFunc("/check", HealthCheck).Methods("GET")
-	router.HandleFunc("/todo", GetIncompletedItems).Methods("GET")
+	router.HandleFunc("/todo", GetIncompleteItems).Methods("GET")
 	// POST
 	router.HandleFunc("/todo", CreateItem).Methods("POST")
 	http.ListenAndServe(":8000", router)
