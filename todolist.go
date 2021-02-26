@@ -40,6 +40,13 @@ func GetIncompleteItems(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(IncompleteTodoItems)
 }
 
+func GetCompleteItems(w http.ResponseWriter, r *http.Request) {
+	log.Info("Get Completed TodoItems");
+	CompleteTodoItems := GetTodoItems(true);
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(CompleteTodoItems)
+}
+
 // POST Functions
 func CreateItem(w http.ResponseWriter, r *http.Request) {
 	// Obtain POST request value for description
@@ -80,6 +87,7 @@ func main() {
 	router.HandleFunc("/", HealthCheck).Methods("GET")
 	router.HandleFunc("/check", HealthCheck).Methods("GET")
 	router.HandleFunc("/todo", GetIncompleteItems).Methods("GET")
+	router.HandleFunc("/complete", GetCompleteItems).Methods("GET")
 	// POST
 	router.HandleFunc("/todo", CreateItem).Methods("POST")
 	http.ListenAndServe(":8000", router)
