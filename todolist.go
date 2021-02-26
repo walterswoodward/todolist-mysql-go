@@ -36,6 +36,19 @@ func CreateItem(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(result.Value)
 }
 
+func GetIncompletedItems(w http.ResponseWriter, r *http.Request) {
+	log.Info("Get Incomplete TodoItems")
+	IncompleteTodoItems := GetTodoItems(false)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(IncompleteTodoItems)
+}
+
+func GetTodoItems(completed bool) interface{} {
+	var todos []TodoItemModel
+	TodoItems := db.Where("completed = ?", completed).Find(&todos).Value
+	return TodoItems
+}
+
 func Ping(w http.ResponseWriter, r *http.Request) {
 	log.WithFields(log.Fields{
 		"species": "Felis catus",
@@ -65,6 +78,7 @@ func main() {
 	log.Info("Starting Todolist API server")
 	router := mux.NewRouter()
 	router.HandleFunc("/ping", Ping).Methods("GET")
+	router.HandleFunc("/todo-incompleted", GetIncompletedItems).Methods("GET")
 	router.HandleFunc("/todo", CreateItem).Methods("POST")
 	http.ListenAndServe(":8000", router)
 }
