@@ -78,9 +78,9 @@ func CreateItem(w http.ResponseWriter, r *http.Request) {
 
 func UpdateItem(w http.ResponseWriter, r *http.Request) {
 	// Get URL parameters from mux
-	vars := mux.Vars(r)
+	params := mux.Vars(r)
 	// Get value for "id", convert to integer, short assign to id
-	id, _ := strconv.Atoi(vars["id"])
+	id, _ := strconv.Atoi(params["id"])
 	// Test if the TodoItem exists in the DB
 	err := GetItemByID(id)
 
@@ -102,6 +102,26 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// DELETE functions
+func DeleteItem(w http.ResponseWriter, r *http.Request) {
+	// Get URL parameters from mux
+	params := mux.Vars(r)
+	id, _ := strconv.Atoi(params["id"])
+
+	// Test if the TodoItem exists in the database
+	err := GetItemByID(id)
+	if err == false {
+		w.Header().Set("Content-Type", "application/json")
+		io.WriteString(w, `{"deleted": false, "error": "Record Not Found"}`)
+	} else {
+		log.WithFields(log.Fields{"Id": id}).Info("Deleting TodoItem")
+		todo := &TodoItemModel{}
+		db.First(&todo, id)
+		db.Delete(&todo)
+		w.Header().Set("Content-Type", "application/json")
+		io.WriteString(w, `{"deleted": true}`)
+	}
+}
 
 func init() {
 	// With the default log.SetFormatter(&log.TextFormatter{}) when a TTY 
@@ -128,5 +148,7 @@ func main() {
 	// POST
 	router.HandleFunc("/todo", CreateItem).Methods("POST")
 	router.HandleFunc("/todo/{id}", UpdateItem).Methods("POST")
+	// DELETE
+	router.HandleFunc("/todo/{id}", DeleteItem).Methods("DELETE")
 	http.ListenAndServe(":8000", router)
 }
