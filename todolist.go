@@ -8,6 +8,7 @@ import (
 	_ "github.com/go-sql-driver/mysql" // To import a package solely for its side-effects (initialization), use the blank identifier
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
+	"encoding/json"
 )
 
 var db, _ = gorm.Open("mysql", "root:root@/todolist?charset=utf8&parseTime=True&loc=Local")
@@ -16,6 +17,23 @@ type TodoItemModel struct {
 	Id int `gorm:"primary_key"`
 	Description string
 	Completed bool
+}
+
+func CreateItem(w http.ResponseWriter, r *http.Request) {
+	// Obtain POST request value for description
+	description := r.FormValue("description")
+	// Log that the addition of the new todo item is about to be saved to the database
+	log.WithFields(log.Fields{"description": description}).Info("Add a new TodoItem. Saving to database.")
+	// Create the todo object to be saved to the database and short assign it to `todo` 
+	todo := &TodoItemModel{Description: description, Completed: false}
+	// Pass reference of reference of TodoItemModel object (via pointer) to db.Create(...) to add it to the database
+	db.Create(&todo)
+	// Use db.Last(...) to get the newly added row in todo_item_models
+	result := db.Last(&todo)
+	// Set response header
+	w.Header().Set("Content-Type", "application/json")
+	// Return JSON response
+	json.NewEncoder(w).Encode(result.Value)
 }
 
 func Ping(w http.ResponseWriter, r *http.Request) {
@@ -47,5 +65,6 @@ func main() {
 	log.Info("Starting Todolist API server")
 	router := mux.NewRouter()
 	router.HandleFunc("/ping", Ping).Methods("GET")
+	router.HandleFunc("/todo", CreateItem).Methods("POST")
 	http.ListenAndServe(":8000", router)
 }
