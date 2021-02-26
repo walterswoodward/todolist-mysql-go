@@ -49,15 +49,11 @@ func GetTodoItems(completed bool) interface{} {
 	return TodoItems
 }
 
-func Ping(w http.ResponseWriter, r *http.Request) {
-	log.WithFields(log.Fields{
-		"species": "Felis catus",
-		"count": 1000,
-	}).Info("A group of cats emerge from the tree line after hearing an unfamiliar tone...")
-	
+func HealthCheck(w http.ResponseWriter, r *http.Request) {
+	log.Info("API Health is OK")
 	// set header + write to view
 	w.Header().Set("Content-Type", "application/json")
-	io.WriteString(w, `pong`)
+	io.WriteString(w, `{"active": true}`)
 }
 
 func init() {
@@ -77,8 +73,11 @@ func main() {
 	
 	log.Info("Starting Todolist API server")
 	router := mux.NewRouter()
-	router.HandleFunc("/ping", Ping).Methods("GET")
-	router.HandleFunc("/todo-incompleted", GetIncompletedItems).Methods("GET")
+	// GET
+	router.HandleFunc("/", HealthCheck).Methods("GET")
+	router.HandleFunc("/check", HealthCheck).Methods("GET")
+	router.HandleFunc("/todo", GetIncompletedItems).Methods("GET")
+	// POST
 	router.HandleFunc("/todo", CreateItem).Methods("POST")
 	http.ListenAndServe(":8000", router)
 }
