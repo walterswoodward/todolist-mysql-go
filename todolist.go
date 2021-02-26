@@ -38,6 +38,12 @@ func GetItemByID(Id int) bool {
 	return true
 }
 
+func GetAllTodoItems() interface{} {
+	var todos []TodoItemModel
+	TodoItems := db.Find(&todos).Value
+	return TodoItems
+}
+
 // GET Functions
 func HealthCheck(w http.ResponseWriter, r *http.Request) {
 	log.Info("API Health is OK")
@@ -57,6 +63,13 @@ func GetCompleteItems(w http.ResponseWriter, r *http.Request) {
 	CompleteTodoItems := GetTodoItems(true);
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(CompleteTodoItems)
+}
+
+func GetAllItems(w http.ResponseWriter, r *http.Request) {
+	log.Info("Get All TodoItems");
+	TodoItems := GetAllTodoItems();
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(TodoItems)
 }
 
 // POST Functions
@@ -145,6 +158,7 @@ func main() {
 	router.HandleFunc("/check", HealthCheck).Methods("GET")
 	router.HandleFunc("/todo", GetIncompleteItems).Methods("GET")
 	router.HandleFunc("/complete", GetCompleteItems).Methods("GET")
+	router.HandleFunc("/all", GetAllItems).Methods("GET")
 	// POST
 	router.HandleFunc("/todo", CreateItem).Methods("POST")
 	router.HandleFunc("/todo/{id}", UpdateItem).Methods("POST")
