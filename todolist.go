@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/rs/cors"
 	_ "github.com/go-sql-driver/mysql" // To import a package solely for its side-effects (initialization), use the blank identifier
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
@@ -74,6 +75,7 @@ func GetAllItems(w http.ResponseWriter, r *http.Request) {
 
 // POST Functions
 func CreateItem(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
 	// Obtain POST request value for description
 	description := r.FormValue("description")
 	// Log that the addition of the new todo item is about to be saved to the database
@@ -164,5 +166,10 @@ func main() {
 	router.HandleFunc("/todo/{id}", UpdateItem).Methods("POST")
 	// DELETE
 	router.HandleFunc("/todo/{id}", DeleteItem).Methods("DELETE")
-	http.ListenAndServe(":8000", router)
+
+	handler := cors.New(cors.Options{
+		AllowedMethods: []string{"GET", "POST", "DELETE", "PATCH", "OPTIONS"},
+	}).Handler(router)
+
+	http.ListenAndServe(":8000", handler)
 }
