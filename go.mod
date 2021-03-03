@@ -10,4 +10,5 @@ require (
 	github.com/rs/cors v1.7.0
 	github.com/sirupsen/logrus v1.8.0
 	golang.org/x/sys v0.0.0-20210223095934-7937bea0104d // indirect
+	gopkg.in/validator.v2 v2.0.0-20200605151824-2b28d334fa05 // indirect
 )
