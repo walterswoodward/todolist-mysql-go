@@ -19,7 +19,7 @@ var db, _ = gorm.Open("mysql", "root:root@/todolist?charset=utf8&parseTime=True&
 
 type TodoItemModel struct {
 	Id int `gorm:"primary_key"`
-	Description string `validate:"min=1,max=40,regexp=^[a-zA-Z]*$"`
+	Description string `validate:"min=1,max=40"`
 	Completed bool
 }
 
