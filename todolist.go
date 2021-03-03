@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/rs/cors"
 	_ "github.com/go-sql-driver/mysql" // To import a package solely for its side-effects (initialization), use the blank identifier
@@ -91,7 +92,10 @@ func CreateItem(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(result.Value)
 }
 
+func validateParams(r *http.Request, )
+
 func UpdateItem(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
 	// Get URL parameters from mux
 	params := mux.Vars(r)
 	// Get value for "id", convert to integer, short assign to id
@@ -103,14 +107,24 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		io.WriteString(w, `{"updated": false, "error": "Record Not Found"}`)
 	} else {
-		// strconv.ParseBool returns 2 values, the second of which being an
-		// error if passed an invalid value so we use the blank identifier `_`,
-		// otherwise at compilation time you'll get a assignment mismatch error 
-		completed, _ := strconv.ParseBool(r.FormValue("completed"))
-		log.WithFields(log.Fields{"Id": id, "Completed": completed}).Info("Updating TodoItem")
 		todo := &TodoItemModel{}
 		db.First(&todo, id)
-		todo.Completed = completed
+
+		completed := r.FormValue("completed")
+		if completed != "" {
+			completed, err := strconv.ParseBool(completed);
+			if err == nil {
+				todo.Completed = completed
+			} else {
+				log.Info(err)
+			}
+		}
+
+		description := r.FormValue("description")
+		if description != "" {
+			todo.Description = description
+		}
+		log.WithFields(log.Fields{"Id": id, "Completed": completed, "Description": description}).Info("Updating TodoItem")
 		db.Save(&todo)
 		w.Header().Set("Content-Type", "application/json")
 		io.WriteString(w, `{"updated": true}`)
@@ -131,9 +145,12 @@ func DeleteItem(w http.ResponseWriter, r *http.Request) {
 	} else {
 		log.WithFields(log.Fields{"Id": id}).Info("Deleting TodoItem")
 		todo := &TodoItemModel{}
+		// Get first todo with matching id
 		db.First(&todo, id)
+		// Delete that todo
 		db.Delete(&todo)
 		w.Header().Set("Content-Type", "application/json")
+		// Write `{"deleted": true}` to http Response
 		io.WriteString(w, `{"deleted": true}`)
 	}
 }
@@ -158,7 +175,7 @@ func main() {
 	// GET
 	router.HandleFunc("/", HealthCheck).Methods("GET")
 	router.HandleFunc("/check", HealthCheck).Methods("GET")
-	router.HandleFunc("/todo", GetIncompleteItems).Methods("GET")
+	router.HandleFunc("/incomplete", GetIncompleteItems).Methods("GET")
 	router.HandleFunc("/complete", GetCompleteItems).Methods("GET")
 	router.HandleFunc("/all", GetAllItems).Methods("GET")
 	// POST

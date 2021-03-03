@@ -7,7 +7,7 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/jinzhu/gorm v1.9.16
 	github.com/magefile/mage v1.11.0 // indirect
-	github.com/rs/cors v1.7.0 // indirect
+	github.com/rs/cors v1.7.0
 	github.com/sirupsen/logrus v1.8.0
 	golang.org/x/sys v0.0.0-20210223095934-7937bea0104d // indirect
 )
