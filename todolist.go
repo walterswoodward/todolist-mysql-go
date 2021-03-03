@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"gopkg.in/validator.v2"
 
 	"github.com/rs/cors"
 	_ "github.com/go-sql-driver/mysql" // To import a package solely for its side-effects (initialization), use the blank identifier
@@ -18,8 +19,8 @@ var db, _ = gorm.Open("mysql", "root:root@/todolist?charset=utf8&parseTime=True&
 
 type TodoItemModel struct {
 	Id int `gorm:"primary_key"`
-	Description string
-	Completed bool
+	Description string `validate:"min=1,max=40,regexp=^[a-zA-Z]*$"`
+	Completed bool `validate:"regexp=^true$|^false$"`
 }
 
 // Helpers
@@ -121,10 +122,19 @@ func UpdateItems(w http.ResponseWriter, r *http.Request) {
 		if description != "" {
 			todo.Description = description
 		}
-		log.WithFields(log.Fields{"Id": id, "Completed": completed, "Description": description}).Info("Updating TodoItem")
-		db.Save(&todo)
-		w.Header().Set("Content-Type", "application/json")
-		io.WriteString(w, `{"updated": true}`)
+
+		// Check for validator errors
+		// see https://pkg.go.dev/gopkg.in/validator.v2
+		if errs := validator.Validate(todo); errs != nil {
+			log.Info(errs)
+			w.Header().Set("Content-Type", "application/json")
+			io.WriteString(w, `{"updated": false}`)
+		} else {
+			log.WithFields(log.Fields{"Id": id, "Completed": completed, "Description": description}).Info("Updating TodoItem")
+			db.Save(&todo)
+			w.Header().Set("Content-Type", "application/json")
+			io.WriteString(w, `{"updated": true}`)
+		}
 	}
 }
 
