@@ -92,9 +92,7 @@ func CreateItem(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(result.Value)
 }
 
-func validateParams(r *http.Request, )
-
-func UpdateItem(w http.ResponseWriter, r *http.Request) {
+func UpdateItems(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	// Get URL parameters from mux
 	params := mux.Vars(r)
@@ -145,12 +143,9 @@ func DeleteItem(w http.ResponseWriter, r *http.Request) {
 	} else {
 		log.WithFields(log.Fields{"Id": id}).Info("Deleting TodoItem")
 		todo := &TodoItemModel{}
-		// Get first todo with matching id
 		db.First(&todo, id)
-		// Delete that todo
 		db.Delete(&todo)
 		w.Header().Set("Content-Type", "application/json")
-		// Write `{"deleted": true}` to http Response
 		io.WriteString(w, `{"deleted": true}`)
 	}
 }
@@ -180,7 +175,7 @@ func main() {
 	router.HandleFunc("/all", GetAllItems).Methods("GET")
 	// POST
 	router.HandleFunc("/todo", CreateItem).Methods("POST")
-	router.HandleFunc("/todo/{id}", UpdateItem).Methods("POST")
+	router.HandleFunc("/todo/{id}", UpdateItems).Methods("POST")
 	// DELETE
 	router.HandleFunc("/todo/{id}", DeleteItem).Methods("DELETE")
 
