@@ -13,9 +13,13 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	log "github.com/sirupsen/logrus"
+    "os"
+	_ "github.com/joho/godotenv/autoload"
 )
 
-var db, _ = gorm.Open("mysql", "root:root@/todolist?charset=utf8&parseTime=True&loc=Local")
+var db, _ = gorm.Open("mysql", os.Getenv("DB_USER") + ":" + os.Getenv("DB_PASSWORD") +
+	"@tcp(" + os.Getenv("DB_HOST") + ":" + os.Getenv("DB_PORT") + ")/" +
+	os.Getenv("DB_NAME") + "?charset=utf8&parseTime=True&loc=Local")
 
 type TodoItemModel struct {
 	Id int `gorm:"primary_key"`
@@ -192,5 +196,5 @@ func main() {
 		AllowedMethods: []string{"GET", "POST", "DELETE", "PATCH", "OPTIONS"},
 	}).Handler(router)
 
-	http.ListenAndServe(":8000", handler)
+	http.ListenAndServe(":" + os.Getenv("SERVER_PORT"), handler)
 }
