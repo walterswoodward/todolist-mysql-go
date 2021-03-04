@@ -28,13 +28,13 @@ type TodoItemModel struct {
 }
 
 // Helpers
-func getenv(key, fallback string) string {
-    value := os.Getenv(key)
-    if len(value) == 0 {
-        return fallback
-    }
-    return value
-}
+// func getenv(key, fallback string) string {
+//     value := os.Getenv(key)
+//     if len(value) == 0 {
+//         return fallback
+//     }
+//     return value
+// }
 
 func GetTodoItems(completed bool) interface{} {
 	var todos []TodoItemModel
@@ -180,6 +180,11 @@ func init() {
 }
 
 func main() {
+	port := os.Getenv("PORT")
+
+	if port == "" {
+		log.Fatal("$PORT must be set")
+	}
 	// close db connection once main is returned
 	defer db.Close()
 
@@ -204,5 +209,5 @@ func main() {
 		AllowedMethods: []string{"GET", "POST", "DELETE", "PATCH", "OPTIONS"},
 	}).Handler(router)
 
-	http.ListenAndServe(":" + (getenv("PORT", "8000")), handler)
+	http.ListenAndServe(":" + port, handler)
 }
