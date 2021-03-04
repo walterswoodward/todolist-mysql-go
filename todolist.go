@@ -28,6 +28,14 @@ type TodoItemModel struct {
 }
 
 // Helpers
+func getenv(key, fallback string) string {
+    value := os.Getenv(key)
+    if len(value) == 0 {
+        return fallback
+    }
+    return value
+}
+
 func GetTodoItems(completed bool) interface{} {
 	var todos []TodoItemModel
 	TodoItems := db.Where("completed = ?", completed).Find(&todos).Value
@@ -196,5 +204,5 @@ func main() {
 		AllowedMethods: []string{"GET", "POST", "DELETE", "PATCH", "OPTIONS"},
 	}).Handler(router)
 
-	http.ListenAndServe(":" + os.Getenv("SERVER_PORT"), handler)
+	http.ListenAndServe(":" + (getenv("PORT", "8000")), handler)
 }
